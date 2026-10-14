@@ -47,7 +47,8 @@ def main():
 
     power = analyser.spectrogram(clip)
     frequencies = analyser.f
-    times = analyser.t(len(clip)) + start / test.sample_rate
+    # ShortTimeFFT already returns times in seconds using its fs setting.
+    times = analyser.t(len(clip))
 
     floor = np.finfo(float).tiny
     reference = max(float(power.max()), floor)
@@ -61,16 +62,33 @@ def main():
 
     plt.xlabel("Time in recording (seconds)")
     plt.ylabel("Frequency (Hz)")
-    plt.title("Spectrogram: seconds 2-6")
-    plt.xlim(2, 6)
+    plt.title("Spectrogram:")
+    plt.xlim(0, test.duration)
     plt.colorbar(image, label="Power (dB relative to clip peak)")
     plt.tight_layout()
-    plt.show()
 
-    print("Window shape:", win.shape)
-    print("Frequency count:", len(frequencies))
-    print("Time count:", len(times))
-    print("Power shape:", power.shape)
+
+    band_mask = (frequencies >= 150) & (frequencies <= 1000)
+    band_power = power[band_mask, :]
+    band_energy = np.sum(band_power, axis=0) * analyser.delta_f
+    threshold = 0.01
+    above_threshold = band_energy > threshold
+
+    plt.figure(figsize=(12, 4))
+    plt.plot(times, band_energy)
+    plt.xlabel("Time (seconds)")
+    plt.ylabel("Band power (digital amplitude²)")
+    plt.title("Power between 150 and 1,000 Hz")
+    plt.xlim(0, test.duration)
+    plt.axhline(
+    threshold,
+    color="red",
+    linestyle="--",
+    label="Candidate threshold",
+    )
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
     
 main()
 

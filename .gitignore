@@ -20,6 +20,6 @@ htmlcov/
 # Generated plots, exported clips, and model outputs
 outputs/
 
-# Local recordings; keep the small example clip available to commit
-data/*
-!data/Meno-song-NOAA-PAGroup-13-humpback-clip.mp3
+# Local recordings and generated listening tests
+/data/
+/outputs/
