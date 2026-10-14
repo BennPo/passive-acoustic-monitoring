@@ -1,0 +1,25 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.env
+
+# Test and tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Generated plots, exported clips, and model outputs
+outputs/
+
+# Local recordings; keep the small example clip available to commit
+data/*
+!data/Meno-song-NOAA-PAGroup-13-humpback-clip.mp3
