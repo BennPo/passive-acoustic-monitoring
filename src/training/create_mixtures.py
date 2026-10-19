@@ -3,6 +3,7 @@ from audiomentations import AddBackgroundNoise
 import numpy as np
 import soundfile as sf
 from pathlib import Path
+import scipy.signal as signal
 import random
 
 class AudioProcessor:
@@ -28,25 +29,53 @@ class AudioProcessor:
             return np.arange(len(self.audio)) / self.sample_rate
 
 
-# Select from the clean-call folder, rather than background recordings.
-audio_files = list(Path("data/clean_calls").glob("*.wav"))
+def split_into_clips(audio, sample_rate, clip_seconds=5):
+    samples_per_clip = int(clip_seconds * sample_rate)
 
-if not audio_files:
-    raise FileNotFoundError("No WAV files found in data/clean_calls")
+    for start in range(0, len(audio), samples_per_clip):
+        end = start + samples_per_clip
+        section = audio[start:end].copy()
 
-filepath = random.choice(audio_files)
-print("Selected:", filepath)
+        if len(section) < samples_per_clip:
+            section = np.pad(
+                section,
+                (0, samples_per_clip - len(section)),
+            )
 
-add_noise = AddBackgroundNoise(
-    sounds_path="data/backgrounds",
-    min_snr_db=-10,
-    max_snr_db=-10,
-    p=1.0,
-)
+        yield section
 
-data = AudioProcessor(filepath)
 
-clean = data.audio.astype(np.float32).copy()
-mixture = add_noise(clean.copy(), sample_rate=data.sample_rate)
+def give_noise(target_sample_rate=8000):
+    # Select from the clean-call folder, rather than background recordings.
+    audio_files = list(Path("data/clean_calls").glob("*.wav"))
 
-sf.write("mixture_test.wav", mixture, data.sample_rate)
+    if not audio_files:
+        raise FileNotFoundError("No WAV files found in data/clean_calls")
+
+    filepath = random.choice(audio_files)
+    print("Selected:", filepath)
+
+    add_noise = AddBackgroundNoise(
+        sounds_path="data/backgrounds",
+        min_snr_db=-10,
+        max_snr_db=10,
+        p=1.0,
+    )
+
+    data = AudioProcessor(filepath)
+    clean = data.audio.astype(np.float32).copy()
+
+    if data.sample_rate != target_sample_rate:
+        clean = signal.resample_poly(
+            clean,
+            up=target_sample_rate,
+            down=data.sample_rate,
+        ).astype(np.float32)
+
+    for section in split_into_clips(clean, target_sample_rate):
+        mixture = add_noise(
+            section.copy(),
+            sample_rate=target_sample_rate,
+        )
+
+        yield mixture, section, target_sample_rate
