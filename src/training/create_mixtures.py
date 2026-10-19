@@ -4,7 +4,6 @@ import numpy as np
 import soundfile as sf
 from pathlib import Path
 import scipy.signal as signal
-import random
 
 class AudioProcessor:
     def __init__(self, filepath):
@@ -45,14 +44,7 @@ def split_into_clips(audio, sample_rate, clip_seconds=5):
         yield section
 
 
-def give_noise(target_sample_rate=8000):
-    # Select from the clean-call folder, rather than background recordings.
-    audio_files = list(Path("data/clean_calls").glob("*.wav"))
-
-    if not audio_files:
-        raise FileNotFoundError("No WAV files found in data/clean_calls")
-
-    filepath = random.choice(audio_files)
+def give_noise(filepath, target_sample_rate=8000):
     print("Selected:", filepath)
 
     add_noise = AddBackgroundNoise(
