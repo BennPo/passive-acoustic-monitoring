@@ -31,13 +31,13 @@ class WhaleDataset(IterableDataset):
                 )
 
 
-if __name__ == "__main__":
-
+def create_loaders():
+    project_root = Path(__file__).resolve().parents[2]
     audio_files = sorted(
-    filepath
-    for filepath in Path("data/clean_calls").iterdir()
-    if filepath.is_file()
-    and filepath.suffix.lower() in {".wav", ".flac"}
+        filepath
+        for filepath in (project_root / "data/clean_calls").iterdir()
+        if filepath.is_file()
+        and filepath.suffix.lower() in {".wav", ".flac"}
     )
 
     train_files, test_files = train_test_split(
@@ -48,10 +48,10 @@ if __name__ == "__main__":
 
     background_files = sorted(
         filepath
-        for filepath in Path("data/backgrounds").iterdir()
+        for filepath in (project_root / "data/backgrounds").iterdir()
         if filepath.is_file()
         and filepath.suffix.lower() in {".wav", ".flac"}
-        )
+    )
 
     train_backgrounds, test_backgrounds = train_test_split(
         background_files,
@@ -69,6 +69,12 @@ if __name__ == "__main__":
         test_dataset, batch_size=4, num_workers=0,
     )
 
-    for mixtures, targets in train_loader:
-        print("Mixtures:", mixtures.shape)
-        print("Targets:", targets.shape)
+    return train_loader, test_loader
+
+
+if __name__ == "__main__":
+    train_loader, test_loader = create_loaders()
+
+    inputs, targets = next(iter(train_loader))
+    print("Noisy inputs:", inputs.shape)
+    print("Clean targets:", targets.shape)
