@@ -44,11 +44,11 @@ def split_into_clips(audio, sample_rate, clip_seconds=5):
         yield section
 
 
-def give_noise(filepath, target_sample_rate=8000):
+def give_noise(filepath, background_files, target_sample_rate=8000):
     print("Selected:", filepath)
 
     add_noise = AddBackgroundNoise(
-        sounds_path="data/backgrounds",
+        sounds_path=background_files,
         min_snr_db=-10,
         max_snr_db=10,
         p=1.0,

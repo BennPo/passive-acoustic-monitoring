@@ -1,0 +1,63 @@
+from pathlib import Path
+
+import torch
+from torch.utils.data import DataLoader, IterableDataset
+from sklearn.model_selection import train_test_split
+
+from .create_mixtures import give_noise
+
+
+class WhaleDataset(IterableDataset):
+    def __init__(self, audio_files, background_files, sample_rate=8000):
+        super().__init__()
+
+        self.audio_files = list(audio_files)
+        self.background_files = list(background_files)
+        self.sample_rate = sample_rate
+
+        if not self.audio_files:
+            raise ValueError("No audio files supplied")
+
+    def __iter__(self):
+        for filepath in self.audio_files:
+            for mixture, clean, _ in give_noise(
+                filepath,
+                self.background_files,
+                target_sample_rate=self.sample_rate,
+            ):
+                yield (
+                    torch.from_numpy(mixture).unsqueeze(0),
+                    torch.from_numpy(clean).unsqueeze(0),
+                )
+
+
+if __name__ == "__main__":
+    audio_files = sorted(Path("data/clean_calls").glob("*.wav"))
+
+    train_files, test_files = train_test_split(
+        audio_files,
+        test_size=0.2,
+        random_state=42,
+    )
+
+    background_files = sorted(Path("data/backgrounds").glob("*.wav"))
+
+    train_backgrounds, test_backgrounds = train_test_split(
+        background_files,
+        test_size=0.2,
+        random_state=42,
+    )
+
+    train_dataset = WhaleDataset(train_files, train_backgrounds)
+    test_dataset = WhaleDataset(test_files, test_backgrounds)
+
+    train_loader = DataLoader(
+        train_dataset, batch_size=4, num_workers=0,
+    )
+    test_loader = DataLoader(
+        test_dataset, batch_size=4, num_workers=0,
+    )
+
+    for mixtures, targets in train_loader:
+        print("Mixtures:", mixtures.shape)
+        print("Targets:", targets.shape)
