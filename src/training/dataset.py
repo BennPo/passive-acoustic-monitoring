@@ -32,7 +32,13 @@ class WhaleDataset(IterableDataset):
 
 
 if __name__ == "__main__":
-    audio_files = sorted(Path("data/clean_calls").glob("*.wav"))
+
+    audio_files = sorted(
+    filepath
+    for filepath in Path("data/clean_calls").iterdir()
+    if filepath.is_file()
+    and filepath.suffix.lower() in {".wav", ".flac"}
+    )
 
     train_files, test_files = train_test_split(
         audio_files,
@@ -40,7 +46,12 @@ if __name__ == "__main__":
         random_state=42,
     )
 
-    background_files = sorted(Path("data/backgrounds").glob("*.wav"))
+    background_files = sorted(
+        filepath
+        for filepath in Path("data/backgrounds").iterdir()
+        if filepath.is_file()
+        and filepath.suffix.lower() in {".wav", ".flac"}
+        )
 
     train_backgrounds, test_backgrounds = train_test_split(
         background_files,
