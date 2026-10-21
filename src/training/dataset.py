@@ -31,7 +31,7 @@ class WhaleDataset(IterableDataset):
                 )
 
 
-def create_loaders():
+def create_loaders(batch_size=4):
     project_root = Path(__file__).resolve().parents[2]
     audio_files = sorted(
         filepath
@@ -63,10 +63,10 @@ def create_loaders():
     test_dataset = WhaleDataset(test_files, test_backgrounds)
 
     train_loader = DataLoader(
-        train_dataset, batch_size=4, num_workers=0,
+        train_dataset, batch_size=batch_size, num_workers=0,
     )
     test_loader = DataLoader(
-        test_dataset, batch_size=4, num_workers=0,
+        test_dataset, batch_size=batch_size, num_workers=0,
     )
 
     return train_loader, test_loader

@@ -49,8 +49,8 @@ def give_noise(filepath, background_files, target_sample_rate=8000):
 
     add_noise = AddBackgroundNoise(
         sounds_path=background_files,
-        min_snr_db=-10,
-        max_snr_db=10,
+        min_snr_db=-8,
+        max_snr_db=8,
         p=1.0,
     )
 
