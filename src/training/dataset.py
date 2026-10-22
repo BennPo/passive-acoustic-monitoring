@@ -8,12 +8,13 @@ from .create_mixtures import give_noise
 
 
 class WhaleDataset(IterableDataset):
-    def __init__(self, audio_files, background_files, sample_rate=8000):
+    def __init__(self, audio_files, background_files, sample_rate=8000, training=False):
         super().__init__()
 
         self.audio_files = list(audio_files)
         self.background_files = list(background_files)
         self.sample_rate = sample_rate
+        self.training = training
 
         if not self.audio_files:
             raise ValueError("No audio files supplied")
@@ -24,6 +25,7 @@ class WhaleDataset(IterableDataset):
                 filepath,
                 self.background_files,
                 target_sample_rate=self.sample_rate,
+                training=self.training,
             ):
                 yield (
                     torch.from_numpy(mixture).unsqueeze(0),
@@ -59,8 +61,15 @@ def create_loaders(batch_size=4):
         random_state=42,
     )
 
-    train_dataset = WhaleDataset(train_files, train_backgrounds)
-    test_dataset = WhaleDataset(test_files, test_backgrounds)
+    train_dataset = WhaleDataset(
+        train_files,
+        train_backgrounds,
+        training=True,
+        )
+    test_dataset = WhaleDataset(
+        test_files,
+        test_backgrounds,
+        )
 
     train_loader = DataLoader(
         train_dataset, batch_size=batch_size, num_workers=0,

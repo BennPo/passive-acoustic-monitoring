@@ -5,6 +5,8 @@ import soundfile as sf
 from pathlib import Path
 import scipy.signal as signal
 
+import random
+
 class AudioProcessor:
     def __init__(self, filepath):
         self.filepath = Path(filepath)
@@ -44,7 +46,7 @@ def split_into_clips(audio, sample_rate, clip_seconds=5):
         yield section
 
 
-def give_noise(filepath, background_files, target_sample_rate=8000):
+def give_noise(filepath, background_files, target_sample_rate=8000, training=False):
     print("Selected:", filepath)
 
     add_noise = AddBackgroundNoise(
@@ -53,6 +55,15 @@ def give_noise(filepath, background_files, target_sample_rate=8000):
         max_snr_db=8,
         p=1.0,
     )
+
+    if training:
+        background_only = AddBackgroundNoise(
+            sounds_path=background_files,
+            noise_rms="absolute",
+            min_absolute_rms_db=-35,
+            max_absolute_rms_db=-15,
+            p=1.0,
+        )
 
     data = AudioProcessor(filepath)
     clean = data.audio.astype(np.float32).copy()
@@ -65,9 +76,31 @@ def give_noise(filepath, background_files, target_sample_rate=8000):
         ).astype(np.float32)
 
     for section in split_into_clips(clean, target_sample_rate):
-        mixture = add_noise(
-            section.copy(),
-            sample_rate=target_sample_rate,
-        )
+        situation = "noisy"
 
-        yield mixture, section, target_sample_rate
+        if training:
+            situation = random.choices(
+                ["noisy", "unchanged", "background"],
+                weights=[80, 10, 10],
+            )[0]
+
+        target = section
+
+        if situation == "noisy":
+            mixture = add_noise(
+                samples=section.copy(),
+                sample_rate=target_sample_rate,
+            )
+
+        elif situation == "unchanged":
+            mixture = section.copy()
+
+        else:
+            target = np.zeros_like(section)
+            mixture = background_only(
+                samples=target.copy(),
+                sample_rate=target_sample_rate,
+            )
+
+        yield mixture, target, target_sample_rate
+
