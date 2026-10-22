@@ -52,7 +52,7 @@ def give_noise(filepath, background_files, target_sample_rate=8000, training=Fal
     add_noise = AddBackgroundNoise(
         sounds_path=background_files,
         min_snr_db=-8,
-        max_snr_db=8,
+        max_snr_db=10,
         p=1.0,
     )
 

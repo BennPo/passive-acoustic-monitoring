@@ -17,8 +17,20 @@ def train_model(model, train_loader, validation_loader, num_epoch=200):
     model = model.to(device)
 
     # Construct the optimiser after moving the model to its device.
-    optimizer = optim.AdamW(model.parameters(), lr=5e-4, weight_decay=1e-5)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.8)
+    optimizer = optim.AdamW(
+        model.parameters(),
+        lr=5e-4,
+        weight_decay=1e-5,
+    )
+    
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,
+        mode="min",
+        factor=0.5,
+        patience=2,
+        threshold=0.001,
+        min_lr=1e-6,
+    )
     criterion = nn.L1Loss()
     print("Device:", device)
 
@@ -89,7 +101,10 @@ def train_model(model, train_loader, validation_loader, num_epoch=200):
             f"validation loss = {avg_validation_loss:.6f}",
             flush=True,
         )
-        scheduler.step()
+        scheduler.step(avg_validation_loss)
+
+        current_lr = optimizer.param_groups[0]["lr"]
+        print(f"Learning rate: {current_lr:.8f}")
 
     return model
 
