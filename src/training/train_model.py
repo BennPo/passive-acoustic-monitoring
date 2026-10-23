@@ -110,7 +110,7 @@ def train_model(model, train_loader, validation_loader, num_epoch=200):
 
 
 if __name__ == "__main__":
-    num_epoch = 5
+    num_epoch = 2
     torch.set_num_threads(min(4, torch.get_num_threads()))
     train_loader, validation_loader = create_loaders(batch_size=2)
 

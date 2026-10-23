@@ -55,7 +55,6 @@ def give_noise(filepath, background_files, target_sample_rate=8000, training=Fal
         max_snr_db=10,
         p=1.0,
     )
-
     if training:
         background_only = AddBackgroundNoise(
             sounds_path=background_files,
@@ -81,7 +80,7 @@ def give_noise(filepath, background_files, target_sample_rate=8000, training=Fal
         if training:
             situation = random.choices(
                 ["noisy", "unchanged", "background"],
-                weights=[80, 10, 10],
+                weights=[70, 20, 10],
             )[0]
 
         target = section
