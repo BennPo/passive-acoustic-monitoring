@@ -34,6 +34,10 @@ def train_model(model, train_loader, validation_loader, num_epoch=200):
     criterion = nn.L1Loss()
     print("Device:", device)
 
+    project_root = Path(__file__).resolve().parents[2]
+    checkpoint_dir = project_root / "outputs/checkpoints/run_01"
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+
     for epoch in range(num_epoch):
         # Training phase: calculate gradients and update the model.
         model.train()
@@ -103,6 +107,28 @@ def train_model(model, train_loader, validation_loader, num_epoch=200):
         )
         scheduler.step(avg_validation_loss)
 
+        checkpoint_path = checkpoint_dir / f"epoch_{epoch + 1:02d}.pt"
+
+        torch.save(
+            {
+                "model_state_dict": model.state_dict(),
+                "model_config": {
+                    "base_channels": model.base_channels,
+                    "n_fft": model.n_fft,
+                    "hop_length": model.hop_length,
+                },
+                "sample_rate": train_loader.dataset.sample_rate,
+                "epochs_completed": epoch + 1,
+                "training_loss": avg_train_loss,
+                "validation_loss": avg_validation_loss,
+                "optimizer_state_dict": optimizer.state_dict(),
+                "scheduler_state_dict": scheduler.state_dict(),
+            },
+            checkpoint_path,
+        )
+
+        print(f"Saved checkpoint: {checkpoint_path}", flush=True)
+
         current_lr = optimizer.param_groups[0]["lr"]
         print(f"Learning rate: {current_lr:.8f}")
 
@@ -110,7 +136,7 @@ def train_model(model, train_loader, validation_loader, num_epoch=200):
 
 
 if __name__ == "__main__":
-    num_epoch = 2
+    num_epoch = 5
     torch.set_num_threads(min(4, torch.get_num_threads()))
     train_loader, validation_loader = create_loaders(batch_size=2)
 
