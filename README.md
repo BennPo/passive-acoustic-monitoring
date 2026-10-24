@@ -12,8 +12,10 @@ This project is a work in progress project to separate whale calls from backgrou
 * Generate dataset with clean whale and noisy whale input pairs
 * Split recordings into training, validation, and test groups
 * Train a whale-call seperator
+* Evaluate seperator
 
 ## Next steps
 
-* create detection dataset with different call types labeled
+* Increase the size of the seperator dataset
+* Create detection dataset with different call types labeled
 * Add whale detection after seperation
